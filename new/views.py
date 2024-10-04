@@ -243,17 +243,17 @@ def send(request, id):
         email = data.get("email")
         value = customer.objects.filter(email=email).exists()
         friend_list =FriendList.objects.filter(friend_list=id).all()
-        v=[]
+        vi=[]
         map=Mapping.objects.filter(map=id).all()
         for i in map:
-            v.append(i.sender)
+            vi.append(i.sender)
         list_email = []
         for i in friend_list:
             list_email.append(i.email)
         if email in list_email:
             return JsonResponse({"status": 200, "message": " you already an friend"})
         if  value :
-            if email in v:
+            if email in vi:
                 return JsonResponse({"status": 200, "message": " you already sent an request wait until response"})
             email_cache = cache.get(email)
             old_count=count(email_cache)
