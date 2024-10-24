@@ -1,0 +1,29 @@
+@require_http_methods(["GET"])
+def user_client_key(request):
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        mobile = data.get('mobile')
+        value_list = []
+        if not mobile:
+            result = Result(400, common_response.STATUS_SUCCESS, "mobile not found")
+            return result.http_response(data.get("pretty"))
+        user = User.objects.get(mobile_no=mobile, status=1)
+        Session_data = Session.objects.filter(user_id=user.id, expires_at__gt=timezone.now()).all()
+        if Session_data:
+            for Session_val in Session_data:
+                value = {"os": Session_val.device.os, 'os_version': Session_val.device.os_version, 'make': Session_val.device.make,
+                             'model': Session_val.device.model, 'client_key': Session_val.client_key}
+                value_list.append(value)
+            result = Result(200, common_response.STATUS_SUCCESS, "Succesfully your valid devices received ",
+                                extra_fields={'value': value_list})
+            return result.http_response(data.get("pretty"))
+        result = Result(400, common_response.STATUS_SUCCESS, "ALL Device sign_out ,kindly log_in ")
+        return result.http_response(data.get("pretty"))
+    except User.DoesNotExist:
+        result = Result(400, common_response.STATUS_SUCCESS, "user not found")
+        return result.http_response(data.get("pretty"))
+    except json.JSONDecodeError:
+        return Result(400, common_response.STATUS_SUCCESS, "Invalid JSON format").http_response(False)
+    except Exception as e:
+        result = Result(400, common_response.STATUS_SUCCESS, "An unexpected error occurred: {}".format(e))
+        return result.http_response(data.get("pretty"))
